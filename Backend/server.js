@@ -1,31 +1,42 @@
-import express from 'express'
-import cors from 'cors'
-import 'dotenv/config'
-import connectDB from './config/mongodb.js'
-import connectCloudinary from './config/cloudinary.js'
-import userRouter from './routes/userRoute.js'
-import productRouter from './routes/productRoute.js'
-import cartRouter from './routes/cartRoute.js'
-import orderRouter from './routes/orderRoute.js'
+import express from 'express';
+import cors from 'cors';
+import 'dotenv/config';
+import connectDB from './config/mongodb.js';
+import connectCloudinary from './config/cloudinary.js';
+import userRouter from './routes/userRoute.js';
+import productRouter from './routes/productRoute.js';
+import cartRouter from './routes/cartRoute.js';
+import orderRouter from './routes/orderRoute.js';
 
-// App Config
-const app = express()
-const port = process.env.PORT || 4000
-connectDB()
-connectCloudinary()
+// Initialize the app
+const app = express();
 
-// middlewares
-app.use(express.json())
-app.use(cors())
+// Middleware
+app.use(express.json());
+app.use(cors());
 
-// api endpoints
-app.use('/api/user',userRouter)
-app.use('/api/product',productRouter)
-app.use('/api/cart',cartRouter)
-app.use('/api/order',orderRouter)
+// Connect to DB and Cloudinary
+(async () => {
+  try {
+    await connectDB();
+    await connectCloudinary();
+    console.log('Connected to MongoDB and Cloudinary successfully');
+  } catch (error) {
+    console.error('Error connecting to services:', error.message);
+    process.exit(1); // Exit if connections fail
+  }
+})();
 
-app.get('/',(req,res)=>{
-    res.send("API Working")
-})
+// API Routes
+app.use('/api/user', userRouter);
+app.use('/api/product', productRouter);
+app.use('/api/cart', cartRouter);
+app.use('/api/order', orderRouter);
 
-app.listen(port, ()=> console.log('Server started on PORT : '+ port))
+// Health Check Route
+app.get('/', (req, res) => {
+  res.send('API Working');
+});
+
+// Export the app for Vercel
+export default app;
